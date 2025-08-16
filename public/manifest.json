@@ -1,6 +1,6 @@
 {
-  "name": "AliasPay",
-  "short_name": "AliasPay",
+  "name": "SolsticePay",
+  "short_name": "SolsticePay",
   "description": "Pay anyone, by alias. Send PYUSD using email, phone, or handles on Base.",
   "start_url": "/",
   "display": "standalone",
@@ -9,19 +9,20 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ],
-  "categories": ["finance", "utilities"],
+  "categories": [
+    "finance",
+    "utilities"
+  ],
   "lang": "en",
   "dir": "ltr"
 }

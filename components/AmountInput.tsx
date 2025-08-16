@@ -23,14 +23,18 @@ export function AmountInput({ value, onChange, balance, onMax, error, disabled }
           onChange={(e) => onChange(e.target.value)}
           placeholder="0.00"
           className={cn(
-            "pr-32 text-right font-mono text-lg",
-            error && "border-destructive focus-visible:ring-destructive"
+            "pl-32 text-left font-mono text-lg",
+            error && "border-red-500 focus-visible:ring-red-500"
           )}
           disabled={disabled}
         />
-        
-        {/* PYUSD token chip */}
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+
+        {/* PYUSD token chip and MAX button - positioned on the left */}
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-1">
+            <div className="h-2 w-2 rounded-full bg-blue-500" />
+            <span className="text-xs font-medium text-blue-500">PYUSD</span>
+          </div>
           <Button
             onClick={onMax}
             variant="ghost"
@@ -40,20 +44,16 @@ export function AmountInput({ value, onChange, balance, onMax, error, disabled }
           >
             MAX
           </Button>
-          <div className="flex items-center gap-1 rounded-full bg-indigo-500/20 px-2 py-1">
-            <div className="h-2 w-2 rounded-full bg-indigo-500" />
-            <span className="text-xs font-medium text-indigo-500">PYUSD</span>
-          </div>
         </div>
       </div>
-      
+
       {/* Balance and error */}
       <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">
+        <span className="text-gray-500 dark:text-gray-400">
           Available: <span className="font-mono">{balance} PYUSD</span>
         </span>
         {error && (
-          <span className="text-destructive text-xs">{error}</span>
+          <span className="text-red-500 text-xs">{error}</span>
         )}
       </div>
     </div>

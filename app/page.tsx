@@ -1,35 +1,57 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AliasInput } from "@/components/AliasInput";
 import { AmountInput } from "@/components/AmountInput";
 import { Textarea } from "@/components/ui/textarea";
 import { AttestationModal } from "@/components/AttestationModal";
 import { TxStatusToast } from "@/components/TxStatusToast";
+import OnrampModal from "@/components/OnrampModal";
 import { resolveAlias, getBalance, sendPayment, getHistory } from "@/lib/mocks";
-import { Send, DollarSign, Shield, Zap } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowDownLeft,
+  Plus,
+  CreditCard,
+  TrendingUp,
+  Shield,
+  Globe,
+  Send,
+  Download,
+  DollarSign,
+  Euro,
+  PoundSterling,
+  Wallet,
+  History,
+  Settings,
+  ChevronRight
+} from "lucide-react";
+
+const currencies = [
+  { code: 'PYUSD', name: 'PayPal USD', symbol: '$', balance: '1,247.50', change: '+2.34%', color: 'text-blue-600 dark:text-blue-400' },
+  { code: 'xAUD', name: 'Australian Dollar', symbol: 'A$', balance: '2,156.78', change: '+1.87%', color: 'text-green-600 dark:text-green-400' },
+  { code: 'xEUR', name: 'Euro', symbol: '€', balance: '1,892.45', change: '-0.45%', color: 'text-purple-600 dark:text-purple-400' },
+  { code: 'xGBP', name: 'British Pound', symbol: '£', balance: '1,634.12', change: '+0.92%', color: 'text-red-600 dark:text-red-400' }
+];
 
 export default function HomePage() {
   const [alias, setAlias] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState('PYUSD');
   const [aliasStatus, setAliasStatus] = useState<"idle" | "resolving" | "resolved" | "error">("idle");
   const [resolvedAlias, setResolvedAlias] = useState<any>(null);
-  const [balance, setBalance] = useState("0.00");
   const [isSending, setIsSending] = useState(false);
-  const [showAttestation, setShowAttestation] = useState(false);
   const [txStatus, setTxStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [txHash, setTxHash] = useState("");
+  const [showAttestation, setShowAttestation] = useState(false);
+  const [showOnramp, setShowOnramp] = useState(false);
+  const [balance, setBalance] = useState("0.00");
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
-
-  // Load balance on mount
-  useState(() => {
-    loadBalance();
-    loadRecentActivity();
-  });
+  const [activeSection, setActiveSection] = useState<'overview' | 'send' | 'request' | 'add' | 'convert'>('overview');
 
   const loadBalance = async () => {
     try {
@@ -42,16 +64,21 @@ export default function HomePage() {
 
   const loadRecentActivity = async () => {
     try {
-      const history = await getHistory("alice@email.com");
-      setRecentActivity(history.slice(0, 3));
+      const history = await getHistory("user");
+      setRecentActivity(history.slice(0, 5));
     } catch (error) {
-      console.error("Failed to load activity:", error);
+      console.error("Failed to load history:", error);
     }
   };
 
+  useEffect(() => {
+    loadBalance();
+    loadRecentActivity();
+  }, []);
+
   const handleAliasResolve = async () => {
     if (!alias.trim()) return;
-    
+
     setAliasStatus("resolving");
     try {
       const result = await resolveAlias(alias);
@@ -68,25 +95,23 @@ export default function HomePage() {
 
   const handleSend = async () => {
     if (!resolvedAlias || !amount) return;
-    
+
     setIsSending(true);
     setTxStatus("pending");
-    
+
     try {
       const result = await sendPayment(alias, amount, note);
       if (result.ok) {
-        setTxHash(result.txHash || "");
         setTxStatus("success");
-        setShowAttestation(true);
-        // Reset form
+        setTxHash(result.txHash || "");
         setAlias("");
         setAmount("");
         setNote("");
         setResolvedAlias(null);
         setAliasStatus("idle");
-        // Reload data
         loadBalance();
         loadRecentActivity();
+        setActiveSection('overview');
       } else {
         setTxStatus("error");
       }
@@ -97,157 +122,426 @@ export default function HomePage() {
     }
   };
 
-  const canSend = resolvedAlias && amount && parseFloat(amount) > 0 && parseFloat(amount) <= parseFloat(balance);
+  const canSend = resolvedAlias && amount && parseFloat(amount) > 0;
 
-  return (
-    <div className="space-y-6">
-      {/* Hero Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-2"
-      >
-        <h1 className="text-3xl font-semibold tracking-tight">Get paid in crypto, like a bank</h1>
-        <p className="text-muted-foreground">PYUSD on Base - no wallet needed</p>
-        <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-border to-transparent"></div>
-      </motion.div>
+  const getCurrencyIcon = (code: string) => {
+    switch (code) {
+      case 'PYUSD': return DollarSign;
+      case 'xEUR': return Euro;
+      case 'xGBP': return PoundSterling;
+      case 'xAUD': return DollarSign;
+      default: return DollarSign;
+    }
+  };
 
-      {/* Value Props */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-4"
-      >
-        <div className="text-center p-4 rounded-xl bg-muted/30">
-          <Shield className="h-8 w-8 mx-auto mb-2 text-primary" />
-          <h3 className="font-medium">Bank-Level Security</h3>
-          <p className="text-sm text-muted-foreground">Your money is safe and insured</p>
-        </div>
-        <div className="text-center p-4 rounded-xl bg-muted/30">
-          <Zap className="h-8 w-8 mx-auto mb-2 text-success" />
-          <h3 className="font-medium">Instant Payments</h3>
-          <p className="text-sm text-muted-foreground">Receive money in seconds</p>
-        </div>
-        <div className="text-center p-4 rounded-xl bg-muted/30">
-          <DollarSign className="h-8 w-8 mx-auto mb-2 text-warning" />
-          <h3 className="font-medium">No Fees</h3>
-          <p className="text-sm text-muted-foreground">Keep 100% of your money</p>
-        </div>
-      </motion.div>
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'send':
+        setActiveSection('send');
+        break;
+      case 'request':
+        setActiveSection('request');
+        break;
+      case 'add':
+        setActiveSection('add');
+        break;
+      case 'convert':
+        setActiveSection('convert');
+        break;
+    }
+  };
 
-      {/* Send Form */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Send className="h-5 w-5" />
-              Send PYUSD
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Alias Input */}
-            <div className="space-y-2">
-              <AliasInput
-                value={alias}
-                onChange={setAlias}
-                onResolve={handleAliasResolve}
-                status={aliasStatus}
-              />
+  const renderAddMoney = () => (
+    <motion.div
+      key="add"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="max-w-2xl mx-auto"
+    >
+      <div className="mb-6">
+        <button
+          onClick={() => setActiveSection('overview')}
+          className="flex items-center text-blue-500 hover:text-blue-600 mb-4"
+        >
+          <ChevronRight className="h-4 w-4 rotate-180 mr-2" />
+          Back to Overview
+        </button>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Add Money</h2>
+        <p className="text-gray-600 dark:text-gray-400">Buy PYUSD and other currencies to fund your account</p>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
+        <div className="space-y-6">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto">
+              <CreditCard className="h-8 w-8 text-purple-600 dark:text-purple-400" />
             </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Buy PYUSD</h3>
+              <p className="text-gray-600 dark:text-gray-400">Purchase PYUSD using your preferred payment method</p>
+            </div>
+          </div>
 
-            {/* Amount Input */}
-            <div className="space-y-2">
-              <AmountInput
-                value={amount}
-                onChange={setAmount}
-                balance={balance}
-                onMax={() => setAmount(balance)}
-                disabled={!resolvedAlias}
-              />
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Available: <span className="font-mono">{balance} PYUSD</span></span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
+              <p className="font-medium text-gray-900 dark:text-white mb-1">Credit/Debit Card</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">2.5% fee • Instant</p>
             </div>
-
-            {/* Note */}
-            <div className="space-y-2">
-              <label htmlFor="note" className="text-sm font-medium">Note (optional)</label>
-              <Textarea
-                id="note"
-                placeholder="What's this payment for?"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                maxLength={120}
-                rows={3}
-              />
-              <div className="text-xs text-muted-foreground text-right">{note.length}/120</div>
-            </div>
-
-            {/* Network Info */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
-              <span className="text-sm">Network</span>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-1 rounded-full bg-primary/20 text-primary text-xs font-medium">Base</span>
-                <span className="text-sm text-muted-foreground">~$0.002 gas</span>
+            <div className="text-center p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Wallet className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
+              <p className="font-medium text-gray-900 dark:text-white mb-1">Bank Transfer</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">0.5% fee • 1-3 days</p>
+            </div>
+            <div className="text-center p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <p className="font-medium text-gray-900 dark:text-white mb-1">ACH Transfer</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">0.1% fee • 3-5 days</p>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => setShowOnramp(true)}
+            className="w-full h-12 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-xl transition-colors"
+          >
+            Start Purchase
+          </Button>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Minimum purchase: $10.00 • Maximum: $10,000.00 per day
+            </p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderOverview = () => (
+    <>
+      {/* Account Overview */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+        <div className="text-center space-y-6">
+          <h1 className="text-3xl font-light text-gray-900 dark:text-white">Welcome back</h1>
+          <div className="space-y-2">
+            <p className="text-lg text-gray-600 dark:text-gray-400">Total Balance</p>
+            <div className="text-6xl font-light text-gray-900 dark:text-white tracking-tight">
+              $5,930.85
+            </div>
+            <p className="text-gray-500 dark:text-gray-400">Across all currencies</p>
+          </div>
+        </div>
+
+        {/* Currency Overview */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Your Accounts</h2>
+            <div className="space-y-4">
+              {currencies.map((currency, index) => {
+                const Icon = getCurrencyIcon(currency.code);
+                return (
+                  <motion.div
+                    key={currency.code}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-blue-50 dark:bg-blue-950/30 rounded-lg flex items-center justify-center">
+                        <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{currency.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{currency.code}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                        {currency.symbol}{currency.balance}
+                      </p>
+                      <p className={`text-sm font-medium ${currency.color}`}>
+                        {currency.change}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">Quick Actions</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { icon: Send, label: 'Send Money', action: 'send', color: 'bg-blue-500' },
+                { icon: Download, label: 'Request Money', action: 'request', color: 'bg-green-500' },
+                { icon: CreditCard, label: 'Add Money', action: 'add', color: 'bg-purple-500' },
+                { icon: Wallet, label: 'Convert', action: 'convert', color: 'bg-orange-500' }
+              ].map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <motion.div
+                    key={action.label}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
+                  >
+                    <button
+                      onClick={() => handleQuickAction(action.action)}
+                      className="w-full p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-lg transition-all duration-200 text-center group"
+                    >
+                      <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
+                      <p className="font-medium text-gray-900 dark:text-white">{action.label}</p>
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Recent Activity */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+              <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-600">
+                View All
+                <ArrowUpRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
 
-            {/* Send Button */}
-            <Button
-              onClick={handleSend}
-              disabled={!canSend || isSending}
-              className="w-full h-14"
-            >
-              {isSending ? (
-                <>
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                  Sending...
-                </>
-              ) : (
-                'Send PYUSD'
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Recent Activity */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
             {recentActivity.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No recent activity</p>
-                <p className="text-sm">Your payment history will appear here</p>
+              <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                <p className="text-lg mb-2">No recent activity</p>
+                <p className="text-sm">Your transaction history will appear here</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {recentActivity.map((tx) => (
-                  <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                    <div>
-                      <p className="font-medium">+${tx.amount} PYUSD</p>
-                      <p className="text-sm text-muted-foreground">{tx.note || 'Payment received'}</p>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                {recentActivity.map((tx, index) => (
+                  <div key={tx.id} className={`flex items-center justify-between p-4 ${index !== recentActivity.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''} hover:bg-gray-50 dark:hover:bg-gray-700/50`}>
+                    <div className="flex items-center space-x-4">
+                      {tx.from === "user" ? (
+                        <ArrowUpRight className="h-4 w-4 text-red-500" />
+                      ) : (
+                        <ArrowDownLeft className="h-4 w-4 text-green-500" />
+                      )}
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {tx.from === "user" ? `-$${tx.amount}` : `+$${tx.amount}`}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {tx.note || (tx.from === "user" ? 'Payment sent' : 'Payment received')}
+                        </p>
+                      </div>
                     </div>
-                    <span className="text-xs text-muted-foreground">{new Date(tx.timestamp).toLocaleDateString()}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(tx.timestamp).toLocaleDateString()}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
       </motion.div>
+    </>
+  );
+
+  const renderSendMoney = () => (
+    <motion.div
+      key="send"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="max-w-2xl mx-auto"
+    >
+      <div className="mb-6">
+        <button
+          onClick={() => setActiveSection('overview')}
+          className="flex items-center text-blue-500 hover:text-blue-600 mb-4"
+        >
+          <ChevronRight className="h-4 w-4 rotate-180 mr-2" />
+          Back to Overview
+        </button>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Send Money</h2>
+        <p className="text-gray-600 dark:text-gray-400">Send money to anyone, anywhere, instantly</p>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
+        <div className="space-y-6">
+          {/* Currency Selector */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-900 dark:text-white">Send from</label>
+            <div className="grid grid-cols-2 gap-3">
+              {currencies.map((currency) => (
+                <button
+                  key={currency.code}
+                  onClick={() => setSelectedCurrency(currency.code)}
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${selectedCurrency === currency.code
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className={`text-lg font-semibold ${currency.color}`}>{currency.code}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {currency.symbol}{currency.balance}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-900 dark:text-white">Recipient</label>
+            <AliasInput
+              value={alias}
+              onChange={setAlias}
+              onResolve={handleAliasResolve}
+              status={aliasStatus}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-900 dark:text-white">Amount</label>
+            <AmountInput
+              value={amount}
+              onChange={setAmount}
+              balance={balance}
+              onMax={() => setAmount(balance)}
+              disabled={!resolvedAlias}
+            />
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+              Available: {currencies.find(c => c.code === selectedCurrency)?.symbol}{currencies.find(c => c.code === selectedCurrency)?.balance}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-900 dark:text-white">Note (optional)</label>
+            <Textarea
+              placeholder="What's this payment for?"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              maxLength={120}
+              rows={2}
+              className="resize-none"
+            />
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-right">{note.length}/120</div>
+          </div>
+
+          <div className="flex items-center justify-between py-4 border-t border-gray-200 dark:border-gray-700">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Network</span>
+            <div className="flex items-center space-x-3">
+              <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-xs font-medium text-blue-700 dark:text-blue-300">Base</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">~$0.002 gas</span>
+            </div>
+          </div>
+
+          <Button onClick={handleSend} disabled={!canSend || isSending} className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors">
+            {isSending ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                Sending...
+              </>
+            ) : (
+              'Send Money'
+            )}
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderRequestMoney = () => (
+    <motion.div
+      key="request"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="max-w-2xl mx-auto text-center"
+    >
+      <div className="mb-6">
+        <button
+          onClick={() => setActiveSection('overview')}
+          className="flex items-center text-blue-500 hover:text-blue-600 mb-4 mx-auto"
+        >
+          <ChevronRight className="h-4 w-4 rotate-180 mr-2" />
+          Back to Overview
+        </button>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Request Money</h2>
+        <p className="text-gray-600 dark:text-gray-400">Generate a payment link to share with others</p>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
+        <div className="space-y-6">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
+            <Download className="h-8 w-8 text-green-600 dark:text-green-400" />
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">This feature will be available soon</p>
+          <Button onClick={() => setActiveSection('overview')} className="bg-green-500 hover:bg-green-600 text-white">
+            Back to Overview
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderConvert = () => (
+    <motion.div
+      key="convert"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="max-w-2xl mx-auto text-center"
+    >
+      <div className="mb-6">
+        <button
+          onClick={() => setActiveSection('overview')}
+          className="flex items-center text-blue-500 hover:text-blue-600 mb-4 mx-auto"
+        >
+          <ChevronRight className="h-4 w-4 rotate-180 mr-2" />
+          Back to Overview
+        </button>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Convert Currency</h2>
+        <p className="text-gray-600 dark:text-gray-400">Exchange between different currencies</p>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
+        <div className="space-y-6">
+          <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto">
+            <Wallet className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">This feature will be available soon</p>
+          <Button onClick={() => setActiveSection('overview')} className="bg-orange-500 hover:bg-orange-600 text-white">
+            Back to Overview
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className="space-y-8">
+      {activeSection === 'overview' && renderOverview()}
+      {activeSection === 'send' && renderSendMoney()}
+      {activeSection === 'request' && renderRequestMoney()}
+      {activeSection === 'add' && renderAddMoney()}
+      {activeSection === 'convert' && renderConvert()}
 
       {/* Transaction Status Toast */}
       {txStatus !== "idle" && (
@@ -255,8 +549,8 @@ export default function HomePage() {
           status={txStatus}
           message={
             txStatus === "pending" ? "Sending payment..." :
-            txStatus === "success" ? "Payment sent successfully!" :
-            "Payment failed. Please try again."
+              txStatus === "success" ? "Payment sent successfully!" :
+                "Payment failed. Please try again."
           }
           txHash={txHash}
           onClose={() => setTxStatus("idle")}
@@ -268,7 +562,16 @@ export default function HomePage() {
         open={showAttestation}
         onOpenChange={setShowAttestation}
         defaultNote={note}
-        onConfirm={() => setShowAttestation(false)}
+        onConfirm={async (note: string) => {
+          console.log("Creating attestation:", note);
+          setShowAttestation(false);
+        }}
+      />
+
+      {/* Onramp Modal */}
+      <OnrampModal
+        open={showOnramp}
+        onOpenChange={setShowOnramp}
       />
     </div>
   );

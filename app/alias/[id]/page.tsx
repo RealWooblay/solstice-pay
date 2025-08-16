@@ -14,19 +14,20 @@ import { cn } from "@/lib/utils";
 interface Profile {
   alias: string;
   address: string;
+  email?: string;
+  phone?: string;
+  github?: string;
+  twitter?: string;
   verified: {
     email: boolean;
     phone: boolean;
     github: boolean;
     twitter: boolean;
   };
-  stats: {
-    totalReceived: string;
-    uniquePayers: number;
-    streak: number;
-  };
-  isTeam: boolean;
-  teamMembers?: Array<{
+  totalReceived: string;
+  uniquePayers: number;
+  streak: number;
+  routingRule?: Array<{
     address: string;
     alias?: string;
     share: number;
@@ -35,12 +36,12 @@ interface Profile {
 
 interface Transaction {
   id: string;
-  dir: 'in' | 'out';
-  counterparty: string;
+  from: string;
+  to: string;
   amount: string;
   note?: string;
   status: 'pending' | 'success' | 'failed';
-  time: string;
+  timestamp: string;
   txHash?: string;
 }
 
@@ -103,31 +104,25 @@ export default function AliasProfilePage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3 mx-auto" />
-          <div className="h-4 bg-muted rounded w-1/2 mx-auto" />
+        <div className="text-center py-12">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-16 bg-muted rounded-full w-16 mx-auto" />
-              <div className="h-6 bg-muted rounded w-1/3 mx-auto" />
-              <div className="h-4 bg-muted rounded w-1/2 mx-auto" />
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-semibold mb-2">Alias not found</h1>
-        <p className="text-muted-foreground">The alias "{alias}" could not be found.</p>
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Profile not found</p>
+        </div>
       </div>
     );
   }
+
+  const isTeam = !!profile.routingRule && profile.routingRule.length > 0;
 
   return (
     <div className="space-y-6">
@@ -137,18 +132,18 @@ export default function AliasProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-4"
       >
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-400 flex items-center justify-center mx-auto">
-          <span className="text-white text-xl font-semibold">
-            {profile.alias[0] === '@' ? profile.alias[1] : profile.alias[0]}
+        <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
+          <span className="text-2xl font-bold text-primary">
+            {profile.alias[0]?.toUpperCase()}
           </span>
         </div>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{profile.alias}</h1>
-          <p className="text-muted-foreground font-mono text-sm">
-            {getMaskedAlias(profile.alias)}
-          </p>
-        </div>
         
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">{profile.alias}</h1>
+          <p className="text-muted-foreground font-mono">{formatAddress(profile.address)}</p>
+        </div>
+
+        {/* Verification Badges */}
         <VerifyBadges
           email={profile.verified.email}
           phone={profile.verified.phone}
@@ -156,59 +151,48 @@ export default function AliasProfilePage() {
           twitter={profile.verified.twitter}
         />
 
-        <div className="flex gap-3 justify-center">
-          <Button size="lg">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-center space-x-3">
+          <Button className="bg-gradient-to-r from-primary to-primary/80">
             <Send className="h-4 w-4 mr-2" />
             Send PYUSD
           </Button>
           <Button variant="outline" onClick={copyPayLink}>
             <Copy className="h-4 w-4 mr-2" />
-            {copied ? "Copied!" : "Copy Pay Link"}
+            {copied ? "Copied!" : "Copy Link"}
           </Button>
-          {profile.alias.startsWith('@') && (
-            <Button variant="outline" size="icon">
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       </motion.div>
 
-      {/* Stats */}
+      {/* Stats Row */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
+        className="grid grid-cols-3 gap-4"
       >
-        <div className="grid grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold font-mono text-success">
-                {formatCurrency(profile.stats.totalReceived)}
-              </div>
-              <p className="text-xs text-muted-foreground">Total Received</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold font-mono">
-                {profile.stats.uniquePayers}
-              </div>
-              <p className="text-xs text-muted-foreground">Unique Payers</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold font-mono text-warning">
-                {profile.stats.streak}
-              </div>
-              <p className="text-xs text-muted-foreground">Day Streak</p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-primary">{formatCurrency(profile.totalReceived)}</p>
+            <p className="text-sm text-muted-foreground">Total Received</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-success">{profile.uniquePayers}</p>
+            <p className="text-sm text-muted-foreground">Unique Payers</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-warning">{profile.streak}</p>
+            <p className="text-sm text-muted-foreground">Day Streak</p>
+          </CardContent>
+        </Card>
       </motion.div>
 
-      {/* Team Members */}
-      {profile.isTeam && profile.teamMembers && (
+      {/* Team Section */}
+      {isTeam && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -218,24 +202,17 @@ export default function AliasProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Split Members
+                Team Members
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {profile.teamMembers.map((member, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-primary text-sm font-medium">
-                          {member.alias ? member.alias[1] : member.address.slice(2, 4)}
-                        </span>
-                      </div>
-                      <span className="font-medium">
-                        {member.alias || formatAddress(member.address)}
-                      </span>
-                    </div>
-                    <span className="font-mono text-sm">{member.share}%</span>
+                {profile.routingRule?.map((member, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                    <span className="font-mono">
+                      {member.alias || formatAddress(member.address)}
+                    </span>
+                    <span className="text-muted-foreground">{member.share}%</span>
                   </div>
                 ))}
               </div>
@@ -255,46 +232,34 @@ export default function AliasProfilePage() {
             <CardTitle>Transaction History</CardTitle>
           </CardHeader>
           <CardContent>
-            {transactions.length > 0 ? (
+            {transactions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No transactions yet</p>
+                <p className="text-sm">Payment history will appear here</p>
+              </div>
+            ) : (
               <div className="space-y-3">
                 {transactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/30 transition-colors cursor-pointer"
-                  >
+                  <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center gap-3">
-                      {getDirectionIcon(tx.dir)}
+                      <ArrowDownLeft className="h-4 w-4 text-success" />
                       <div>
-                        <p className="font-medium text-sm">
-                          {tx.dir === 'in' ? 'Received from' : 'Sent to'} {tx.counterparty}
-                        </p>
+                        <p className="font-medium">+${tx.amount} PYUSD</p>
                         {tx.note && (
-                          <p className="text-xs text-muted-foreground">{tx.note}</p>
+                          <p className="text-sm text-muted-foreground">{tx.note}</p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-2">
                         {getStatusIcon(tx.status)}
-                        <p className={cn(
-                          "font-mono font-medium",
-                          tx.dir === 'in' ? 'text-success' : 'text-primary'
-                        )}>
-                          {tx.dir === 'in' ? '+' : '-'}{formatCurrency(tx.amount)}
-                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTimeAgo(tx.timestamp)}
+                        </span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTimeAgo(tx.time)}
-                      </p>
                     </div>
                   </div>
                 ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No transactions yet</p>
-                <p className="text-sm">Transaction history will appear here</p>
               </div>
             )}
           </CardContent>

@@ -3,14 +3,15 @@ import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Topbar } from "@/components/Topbar";
-import { BottomNav } from "@/components/BottomNav";
+// import { BottomNav } from "@/components/BottomNav";
 import { InstallPWAHint } from "@/components/InstallPWAHint";
 import { registerServiceWorker } from "@/lib/pwa";
+import AuthGate from "@/components/AuthGate";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AliasPay - Get paid in crypto, like a bank",
+  title: "SolsticePay - Get paid in crypto, like a bank",
   description: "Receive PYUSD payments to your phone number or email - no wallet needed, just like getting paid at a bank",
   manifest: "/manifest.json",
 };
@@ -37,14 +38,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider defaultTheme="dark">
-          <div className="min-h-screen bg-background text-foreground">
+          <AuthGate />
+          <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
             <Topbar />
-            <main className="pb-20 md:pb-0">
+            <main className="pb-0">
               <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
                 {children}
               </div>
             </main>
-            <BottomNav />
+            {/* <BottomNav /> */}
             <InstallPWAHint />
           </div>
         </ThemeProvider>

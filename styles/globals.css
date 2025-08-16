@@ -1,65 +1,67 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
     :root {
+        /* Light Mode - Sun Theme */
         --background: 255 255 255;
         --foreground: 15 23 42;
-        --card: 248 250 252;
+        --card: 250 250 252;
         --card-foreground: 15 23 42;
         --popover: 255 255 255;
         --popover-foreground: 15 23 42;
-        --primary: 99 102 241;
+        --primary: 139 92 246;
         --primary-foreground: 255 255 255;
-        --secondary: 241 245 249;
+        --secondary: 245 243 255;
         --secondary-foreground: 15 23 42;
-        --muted: 241 245 249;
+        --muted: 245 243 255;
         --muted-foreground: 100 116 139;
-        --accent: 241 245 249;
+        --accent: 245 243 255;
         --accent-foreground: 15 23 42;
-        --destructive: 244 63 94;
+        --destructive: 239 68 68;
         --destructive-foreground: 255 255 255;
         --border: 226 232 240;
         --input: 226 232 240;
-        --ring: 99 102 241;
-        --success: 16 185 129;
+        --ring: 139 92 246;
+        --success: 34 197 94;
         --warning: 245 158 11;
-        --danger: 244 63 94;
+        --danger: 239 68 68;
     }
 
     .dark {
+        /* Dark Mode - Moon Theme */
         --background: 2 6 23;
         --foreground: 248 250 252;
         --card: 15 23 42;
         --card-foreground: 248 250 252;
         --popover: 15 23 42;
         --popover-foreground: 248 250 252;
-        --primary: 99 102 241;
-        --primary-foreground: 255 255 255;
-        --secondary: 51 65 85;
+        --primary: 167 139 250;
+        --primary-foreground: 15 23 42;
+        --secondary: 30 41 59;
         --secondary-foreground: 248 250 252;
-        --muted: 51 65 85;
+        --muted: 30 41 59;
         --muted-foreground: 148 163 184;
-        --accent: 51 65 85;
+        --accent: 30 41 59;
         --accent-foreground: 248 250 252;
-        --destructive: 244 63 94;
+        --destructive: 239 68 68;
         --destructive-foreground: 255 255 255;
         --border: 51 65 85;
         --input: 51 65 85;
-        --ring: 99 102 241;
-        --success: 16 185 129;
+        --ring: 167 139 250;
+        --success: 34 197 94;
         --warning: 245 158 11;
-        --danger: 244 63 94;
+        --danger: 239 68 68;
     }
 
     * {
-        @apply border-border;
+        @apply border-gray-200 dark:border-gray-700;
     }
 
     body {
-        @apply bg-background text-foreground font-sans;
+        @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-sans;
         font-family: 'Inter', sans-serif;
     }
 
@@ -69,38 +71,41 @@
 }
 
 @layer components {
-    .card {
-        @apply relative rounded-2xl bg-card shadow-lg border border-border/50;
+    /* Professional Financial App Components */
+    .financial-card {
+        @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm;
     }
 
-    .card::before {
-        content: '';
-        @apply absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 to-transparent p-[1px] pointer-events-none;
-    }
-
-    .card-inner {
-        @apply relative rounded-2xl bg-card p-5;
-    }
-
-    .glass {
-        @apply backdrop-blur-md bg-card/50 border border-border/50;
+    .financial-card-hover {
+        @apply hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200;
     }
 
     .gradient-text {
-        @apply bg-gradient-to-r from-indigo-500 to-indigo-400 bg-clip-text text-transparent;
+        @apply bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent;
     }
 
-    .gradient-border {
-        @apply relative;
+    .accent-border {
+        @apply border-l-4 border-l-blue-500;
     }
 
-    .gradient-border .inner {
-        @apply relative rounded-2xl bg-card p-5;
+    .stat-item {
+        @apply flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700 last:border-0;
     }
 
-    .gradient-border::before {
-        content: '';
-        @apply absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/50 to-indigo-400/50 p-[1px] pointer-events-none;
+    .stat-label {
+        @apply text-sm text-gray-600 dark:text-gray-400;
+    }
+
+    .stat-value {
+        @apply font-semibold text-gray-900 dark:text-white;
+    }
+
+    .professional-button {
+        @apply bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors;
+    }
+
+    .professional-button-secondary {
+        @apply bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-600 transition-colors;
     }
 }
 
