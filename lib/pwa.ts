@@ -1,14 +1,20 @@
+// PWA utilities
+declare global {
+    interface Window {
+        deferredPrompt?: BeforeInstallPromptEvent;
+    }
+}
+
+interface BeforeInstallPromptEvent extends Event {
+    prompt(): Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export function registerServiceWorker() {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('SW registered: ', registration);
-                })
-                .catch(registrationError => {
-                    console.log('SW registration failed: ', registrationError);
-                });
-        });
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => console.log('SW registered:', registration))
+            .catch(error => console.log('SW registration failed:', error));
     }
 }
 
@@ -17,7 +23,7 @@ export function showInstallPrompt() {
         const promptEvent = window.deferredPrompt;
         if (promptEvent) {
             promptEvent.prompt();
-            window.deferredPrompt = null;
+            window.deferredPrompt = undefined;
         }
     }
 }

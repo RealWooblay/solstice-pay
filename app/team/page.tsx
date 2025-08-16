@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/Card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { setRoutingRule } from "@/lib/mocks";
@@ -46,7 +47,7 @@ export default function TeamPage() {
   const updateMember = (index: number, field: keyof TeamMember, value: string | number) => {
     const newMembers = [...members];
     newMembers[index] = { ...newMembers[index], [field]: value };
-    
+
     // Auto-adjust shares if total exceeds 100%
     if (field === 'share') {
       const totalShare = newMembers.reduce((sum, member) => sum + member.share, 0);
@@ -55,7 +56,7 @@ export default function TeamPage() {
         newMembers[index].share = Math.max(0, 100 - (totalShare - newMembers[index].share));
       }
     }
-    
+
     setMembers(newMembers);
   };
 
@@ -64,15 +65,15 @@ export default function TeamPage() {
   };
 
   const isValid = () => {
-    return teamAlias.startsWith('@') && 
-           members.length >= 2 && 
-           getTotalShare() === 100 &&
-           members.every(m => m.address && m.share > 0);
+    return teamAlias.startsWith('@') &&
+      members.length >= 2 &&
+      getTotalShare() === 100 &&
+      members.every(m => m.address && m.share > 0);
   };
 
   const handleSave = async () => {
     if (!isValid()) return;
-    
+
     setIsSaving(true);
     try {
       // TODO: setRoutingRule with encoded splits
