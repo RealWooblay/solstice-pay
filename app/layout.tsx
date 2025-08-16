@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Topbar } from "@/components/Topbar";
 import { BottomNav } from "@/components/BottomNav";
+import { Sidebar } from "@/components/Sidebar";
 import { InstallPWAHint } from "@/components/InstallPWAHint";
 import { registerServiceWorker } from "@/lib/pwa";
 
@@ -39,8 +40,9 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="dark">
           <div className="min-h-screen bg-background text-foreground">
             <Topbar />
-            <main className="pb-20 md:pb-0 md:pl-64">
-              <div className="container mx-auto max-w-screen-sm px-4 py-6 md:max-w-2xl md:py-8">
+            <Sidebar />
+            <main className="pb-20 md:pb-0 md:ml-64">
+              <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
                 {children}
               </div>
             </main>
