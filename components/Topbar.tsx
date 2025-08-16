@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { resolveAlias } from "@/lib/mocks";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LoginButton } from "./login-button";
 
 interface SearchResult {
   type: 'alias' | 'address';
@@ -143,9 +144,7 @@ export function Topbar() {
         {/* Right side - Actions */}
         <div className="flex items-center space-x-2">
           {/* Login trigger (you will wire the modal) */}
-          <Button className="bg-blue-500 hover:bg-blue-600 text-white">
-            Login
-          </Button>
+          <LoginButton />
 
           {/* Mobile search toggle */}
           <Button

@@ -431,19 +431,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-900 dark:text-white">Note (optional)</label>
-            <Textarea
-              placeholder="What's this payment for?"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              maxLength={120}
-              rows={2}
-              className="resize-none"
-            />
-            <div className="text-xs text-gray-500 dark:text-gray-400 text-right">{note.length}/120</div>
-          </div>
-
           <div className="flex items-center justify-between py-4 border-t border-gray-200 dark:border-gray-700">
             <span className="text-sm text-gray-600 dark:text-gray-400">Network</span>
             <div className="flex items-center space-x-3">

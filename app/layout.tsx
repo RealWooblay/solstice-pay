@@ -7,6 +7,7 @@ import { Topbar } from "@/components/Topbar";
 import { InstallPWAHint } from "@/components/InstallPWAHint";
 import { registerServiceWorker } from "@/lib/pwa";
 import AuthGate from "@/components/AuthGate";
+import Providers from "@/components/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,19 +38,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider defaultTheme="dark">
-          <AuthGate />
-          <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-            <Topbar />
-            <main className="pb-0">
-              <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
-                {children}
-              </div>
-            </main>
-            {/* <BottomNav /> */}
-            <InstallPWAHint />
-          </div>
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider defaultTheme="dark">
+            <AuthGate />
+            <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+              <Topbar />
+              <main className="pb-0">
+                <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
+                  {children}
+                </div>
+              </main>
+              {/* <BottomNav /> */}
+              <InstallPWAHint />
+            </div>
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
