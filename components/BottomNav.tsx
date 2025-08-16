@@ -1,15 +1,14 @@
 "use client"
 
-import { Home, Link as LinkIcon, Users, User, Send } from "lucide-react";
+import { Home, Link as LinkIcon, Users, Send } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", icon: Send, label: "Send", mobileIcon: Send },
-  { href: "/link", icon: LinkIcon, label: "Link", mobileIcon: LinkIcon },
+  { href: "/link", icon: LinkIcon, label: "Get Paid", mobileIcon: LinkIcon },
   { href: "/team", icon: Users, label: "Team", mobileIcon: Users },
-  { href: "/profile", icon: User, label: "Profile", mobileIcon: User },
 ];
 
 export function BottomNav() {

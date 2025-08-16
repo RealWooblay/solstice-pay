@@ -4,15 +4,14 @@ import "../styles/globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Topbar } from "@/components/Topbar";
 import { BottomNav } from "@/components/BottomNav";
-import { Sidebar } from "@/components/Sidebar";
 import { InstallPWAHint } from "@/components/InstallPWAHint";
 import { registerServiceWorker } from "@/lib/pwa";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AliasPay - Pay anyone, by alias",
-  description: "Send PYUSD to anyone using their email, phone, or handle on Base",
+  title: "AliasPay - Get paid in crypto, like a bank",
+  description: "Receive PYUSD payments to your phone number or email - no wallet needed, just like getting paid at a bank",
   manifest: "/manifest.json",
 };
 
@@ -40,8 +39,7 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="dark">
           <div className="min-h-screen bg-background text-foreground">
             <Topbar />
-            <Sidebar />
-            <main className="pb-20 md:pb-0 md:ml-64">
+            <main className="pb-20 md:pb-0">
               <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
                 {children}
               </div>

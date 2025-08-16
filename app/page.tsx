@@ -1,66 +1,40 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AliasInput } from "@/components/AliasInput";
 import { AmountInput } from "@/components/AmountInput";
-import { VerifyBadges } from "@/components/VerifyBadges";
-import { TxStatusToast } from "@/components/TxStatusToast";
+import { Textarea } from "@/components/ui/textarea";
 import { AttestationModal } from "@/components/AttestationModal";
+import { TxStatusToast } from "@/components/TxStatusToast";
 import { resolveAlias, getBalance, sendPayment, getHistory } from "@/lib/mocks";
-import { formatCurrency, formatTimeAgo } from "@/lib/format";
-import { Send, TrendingUp, AlertTriangle, CheckCircle, ArrowUpRight, ArrowDownLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-interface AliasResolution {
-  alias: string;
-  address: string;
-  verified: {
-    email: boolean;
-    phone: boolean;
-    github: boolean;
-    twitter: boolean;
-  };
-  isTeam: boolean;
-  riskLevel?: 'low' | 'medium' | 'high';
-}
-
-interface Transaction {
-  id: string;
-  dir: 'in' | 'out';
-  counterparty: string;
-  amount: string;
-  note?: string;
-  status: 'pending' | 'success' | 'failed';
-  time: string;
-  txHash?: string;
-}
+import { Send, DollarSign, Shield, Zap } from "lucide-react";
 
 export default function HomePage() {
   const [alias, setAlias] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
-  const [resolution, setResolution] = useState<AliasResolution | null>(null);
-  const [status, setStatus] = useState<"idle" | "resolving" | "verified" | "unverified" | "taken">("idle");
+  const [aliasStatus, setAliasStatus] = useState<"idle" | "resolving" | "resolved" | "error">("idle");
+  const [resolvedAlias, setResolvedAlias] = useState<any>(null);
   const [balance, setBalance] = useState("0.00");
-  const [recentActivity, setRecentActivity] = useState<Transaction[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [txStatus, setTxStatus] = useState<"pending" | "success" | "error" | null>(null);
-  const [txMessage, setTxMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [showAttestation, setShowAttestation] = useState(false);
+  const [txStatus, setTxStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [txHash, setTxHash] = useState("");
-  const [showAttestationModal, setShowAttestationModal] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
-  useEffect(() => {
+  // Load balance on mount
+  useState(() => {
     loadBalance();
     loadRecentActivity();
-  }, []);
+  });
 
   const loadBalance = async () => {
     try {
-      const bal = await getBalance();
-      setBalance(bal.pyusd);
+      const balanceData = await getBalance();
+      setBalance(balanceData.pyusd);
     } catch (error) {
       console.error("Failed to load balance:", error);
     }
@@ -68,97 +42,62 @@ export default function HomePage() {
 
   const loadRecentActivity = async () => {
     try {
-      // TODO: load user's recent transactions
-      const history = await getHistory("user");
-      setRecentActivity(history.slice(0, 5));
+      const history = await getHistory("alice@email.com");
+      setRecentActivity(history.slice(0, 3));
     } catch (error) {
-      console.error("Failed to load recent activity:", error);
+      console.error("Failed to load activity:", error);
     }
   };
 
-  const handleResolve = async () => {
+  const handleAliasResolve = async () => {
     if (!alias.trim()) return;
     
-    setStatus("resolving");
+    setAliasStatus("resolving");
     try {
       const result = await resolveAlias(alias);
       if (result) {
-        setResolution(result);
-        setStatus(result.verified.email || result.verified.phone || result.verified.github || result.verified.twitter ? "verified" : "unverified");
+        setResolvedAlias(result);
+        setAliasStatus("resolved");
       } else {
-        setStatus("taken");
-        setResolution(null);
+        setAliasStatus("error");
       }
     } catch (error) {
-      setStatus("unverified");
-      setResolution(null);
+      setAliasStatus("error");
     }
   };
 
   const handleSend = async () => {
-    if (!alias || !amount || !resolution) return;
+    if (!resolvedAlias || !amount) return;
     
-    setIsSubmitting(true);
+    setIsSending(true);
     setTxStatus("pending");
-    setTxMessage("Approving PYUSD...");
     
     try {
-      // TODO: approve PYUSD (ERC20) using wallet
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setTxMessage("Transferring...");
       const result = await sendPayment(alias, amount, note);
-      
       if (result.ok) {
-        setTxStatus("success");
-        setTxMessage("Payment sent successfully!");
         setTxHash(result.txHash || "");
-        
+        setTxStatus("success");
+        setShowAttestation(true);
         // Reset form
         setAlias("");
         setAmount("");
         setNote("");
-        setResolution(null);
-        setStatus("idle");
-        
+        setResolvedAlias(null);
+        setAliasStatus("idle");
         // Reload data
         loadBalance();
         loadRecentActivity();
-        
-        // Show attestation modal
-        setTimeout(() => setShowAttestationModal(true), 1000);
       } else {
         setTxStatus("error");
-        setTxMessage("Transaction failed. Please try again.");
       }
     } catch (error) {
       setTxStatus("error");
-      setTxMessage("Transaction failed. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setIsSending(false);
     }
   };
 
-  const handleAttestation = async (note: string) => {
-    // TODO: write EAS attestation
-    console.log("Creating attestation with note:", note);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "success": return <CheckCircle className="h-4 w-4 text-success" />;
-      case "pending": return <TrendingUp className="h-4 w-4 text-warning" />;
-      case "failed": return <AlertTriangle className="h-4 w-4 text-destructive" />;
-      default: return <CheckCircle className="h-4 w-4 text-success" />;
-    }
-  };
-
-  const getDirectionIcon = (dir: 'in' | 'out') => {
-    return dir === 'in' ? 
-      <ArrowDownLeft className="h-4 w-4 text-success" /> : 
-      <ArrowUpRight className="h-4 w-4 text-primary" />;
-  };
+  const canSend = resolvedAlias && amount && parseFloat(amount) > 0 && parseFloat(amount) <= parseFloat(balance);
 
   return (
     <div className="space-y-6">
@@ -168,18 +107,40 @@ export default function HomePage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-2"
       >
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Pay anyone, by alias.
-        </h1>
-        <p className="text-muted-foreground">PYUSD on Base (mock)</p>
-        <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <h1 className="text-3xl font-semibold tracking-tight">Get paid in crypto, like a bank</h1>
+        <p className="text-muted-foreground">PYUSD on Base - no wallet needed</p>
+        <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-border to-transparent"></div>
+      </motion.div>
+
+      {/* Value Props */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+      >
+        <div className="text-center p-4 rounded-xl bg-muted/30">
+          <Shield className="h-8 w-8 mx-auto mb-2 text-primary" />
+          <h3 className="font-medium">Bank-Level Security</h3>
+          <p className="text-sm text-muted-foreground">Your money is safe and insured</p>
+        </div>
+        <div className="text-center p-4 rounded-xl bg-muted/30">
+          <Zap className="h-8 w-8 mx-auto mb-2 text-success" />
+          <h3 className="font-medium">Instant Payments</h3>
+          <p className="text-sm text-muted-foreground">Receive money in seconds</p>
+        </div>
+        <div className="text-center p-4 rounded-xl bg-muted/30">
+          <DollarSign className="h-8 w-8 mx-auto mb-2 text-warning" />
+          <h3 className="font-medium">No Fees</h3>
+          <p className="text-sm text-muted-foreground">Keep 100% of your money</p>
+        </div>
       </motion.div>
 
       {/* Send Form */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.2 }}
       >
         <Card>
           <CardHeader>
@@ -190,85 +151,66 @@ export default function HomePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Alias Input */}
-            <AliasInput
-              value={alias}
-              onChange={setAlias}
-              onResolve={handleResolve}
-              status={status}
-            />
-
-            {/* Resolution Status */}
-            {resolution && (
-              <div className="space-y-3 p-4 rounded-xl bg-muted/30">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Resolved to:</span>
-                  <span className="font-mono text-sm">{resolution.address}</span>
-                </div>
-                <VerifyBadges
-                  email={resolution.verified.email}
-                  phone={resolution.verified.phone}
-                  github={resolution.verified.github}
-                  twitter={resolution.verified.twitter}
-                  size="sm"
-                />
-                {resolution.riskLevel === 'high' && (
-                  <div className="flex items-center gap-2 text-warning text-sm">
-                    <AlertTriangle className="h-4 w-4" />
-                    High risk - proceed with caution
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="space-y-2">
+              <AliasInput
+                value={alias}
+                onChange={setAlias}
+                onResolve={handleAliasResolve}
+                status={aliasStatus}
+              />
+            </div>
 
             {/* Amount Input */}
-            <AmountInput
-              value={amount}
-              onChange={setAmount}
-              balance={balance}
-              onMax={() => setAmount(balance)}
-              disabled={!resolution}
-            />
+            <div className="space-y-2">
+              <AmountInput
+                value={amount}
+                onChange={setAmount}
+                balance={balance}
+                onMax={() => setAmount(balance)}
+                disabled={!resolvedAlias}
+              />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Available: <span className="font-mono">{balance} PYUSD</span></span>
+              </div>
+            </div>
 
             {/* Note */}
             <div className="space-y-2">
-              <label htmlFor="note" className="text-sm font-medium">
-                Note (optional)
-              </label>
-              <textarea
+              <label htmlFor="note" className="text-sm font-medium">Note (optional)</label>
+              <Textarea
                 id="note"
+                placeholder="What's this payment for?"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="What's this payment for?"
                 maxLength={120}
-                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 rows={3}
               />
-              <div className="text-xs text-muted-foreground text-right">
-                {note.length}/120
-              </div>
+              <div className="text-xs text-muted-foreground text-right">{note.length}/120</div>
             </div>
 
             {/* Network Info */}
             <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
               <span className="text-sm">Network</span>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-1 rounded-full bg-primary/20 text-primary text-xs font-medium">
-                  Base
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  ~$0.002 gas
-                </span>
+                <span className="px-2 py-1 rounded-full bg-primary/20 text-primary text-xs font-medium">Base</span>
+                <span className="text-sm text-muted-foreground">~$0.002 gas</span>
               </div>
             </div>
 
             {/* Send Button */}
             <Button
               onClick={handleSend}
-              disabled={!resolution || !amount || isSubmitting}
-              className="w-full"
-              size="lg"
+              disabled={!canSend || isSending}
+              className="w-full h-14"
             >
-              {isSubmitting ? "Sending..." : "Send PYUSD"}
+              {isSending ? (
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                  Sending...
+                </>
+              ) : (
+                'Send PYUSD'
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -278,49 +220,29 @@ export default function HomePage() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.3 }}
       >
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentActivity.length > 0 ? (
-              <div className="space-y-3">
-                {recentActivity.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/30 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      {getDirectionIcon(tx.dir)}
-                      <div>
-                        <p className="font-medium text-sm">
-                          {tx.dir === 'in' ? 'Received from' : 'Sent to'} {tx.counterparty}
-                        </p>
-                        {tx.note && (
-                          <p className="text-xs text-muted-foreground">{tx.note}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={cn(
-                        "font-mono font-medium",
-                        tx.dir === 'in' ? 'text-success' : 'text-primary'
-                      )}>
-                        {tx.dir === 'in' ? '+' : '-'}{formatCurrency(tx.amount)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTimeAgo(tx.time)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
+            {recentActivity.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No recent activity</p>
                 <p className="text-sm">Your payment history will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentActivity.map((tx) => (
+                  <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                    <div>
+                      <p className="font-medium">+${tx.amount} PYUSD</p>
+                      <p className="text-sm text-muted-foreground">{tx.note || 'Payment received'}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{new Date(tx.timestamp).toLocaleDateString()}</span>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
@@ -328,21 +250,25 @@ export default function HomePage() {
       </motion.div>
 
       {/* Transaction Status Toast */}
-      {txStatus && (
+      {txStatus !== "idle" && (
         <TxStatusToast
           status={txStatus}
-          message={txMessage}
+          message={
+            txStatus === "pending" ? "Sending payment..." :
+            txStatus === "success" ? "Payment sent successfully!" :
+            "Payment failed. Please try again."
+          }
           txHash={txHash}
-          onClose={() => setTxStatus(null)}
+          onClose={() => setTxStatus("idle")}
         />
       )}
 
       {/* Attestation Modal */}
       <AttestationModal
-        open={showAttestationModal}
-        onOpenChange={setShowAttestationModal}
+        open={showAttestation}
+        onOpenChange={setShowAttestation}
         defaultNote={note}
-        onConfirm={handleAttestation}
+        onConfirm={() => setShowAttestation(false)}
       />
     </div>
   );
