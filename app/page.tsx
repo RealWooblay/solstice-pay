@@ -362,9 +362,8 @@ export default function HomePage() {
         "function decimals() view returns (uint8)",
         "function symbol() view returns (string)"
       ];
-
       // Create contract instance
-      const contract = new ethers.Contract(contractAddress, provider, erc20Abi);
+      const contract = new ethers.Contract(contractAddress, erc20Abi, provider);
 
       // Get balance and decimals
       const [balance, contractDecimals] = await Promise.all([
