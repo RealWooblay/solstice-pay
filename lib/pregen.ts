@@ -9,6 +9,8 @@ export async function pregenerateEmailWallet(email: string): Promise<string | un
     try {
         const user = await privy.importUser({
             linkedAccounts: [{ type: 'email', address: email }],
+            createEthereumWallet: true,
+            createEthereumSmartWallet: true,
             wallets: [
                 { chainType: 'ethereum', createSmartWallet: true, policyIds: [] },
             ],
@@ -24,6 +26,8 @@ export async function pregeneratePhoneWallet(phone: string): Promise<string | un
     try {
         const user = await privy.importUser({
             linkedAccounts: [{ type: 'phone', number: phone }],
+            createEthereumWallet: true,
+            createEthereumSmartWallet: true,
             wallets: [
                 { chainType: 'ethereum', createSmartWallet: true, policyIds: [] },
             ],
@@ -39,6 +43,8 @@ export async function pregenerateGoogleWallet(email: string): Promise<string | u
     try {
         const user = await privy.importUser({
             linkedAccounts: [{ type: 'google_oauth', subject: email, email: email, name: email }],
+            createEthereumWallet: true,
+            createEthereumSmartWallet: true,
             wallets: [
                 { chainType: 'ethereum', createSmartWallet: true, policyIds: [] },
             ],
@@ -66,6 +72,8 @@ export async function pregenerateTwitterWallet(username: string): Promise<string
 
         const user = await privy.importUser({
             linkedAccounts: [{ type: 'twitter_oauth', subject: data.id, username: data.username, name: data.name }],
+            createEthereumWallet: true,
+            createEthereumSmartWallet: true,
             wallets: [
                 { chainType: 'ethereum', createSmartWallet: true, policyIds: [] },
             ],
@@ -82,6 +90,7 @@ export async function pregenerateDiscordWallet(username: string) {
         const user = await privy.importUser({
             linkedAccounts: [{ type: 'discord_oauth', subject: username, username: username, email: username }],
             createEthereumWallet: true,
+            createEthereumSmartWallet: true,
             wallets: [
                 { chainType: 'ethereum', createSmartWallet: true, policyIds: [] },
             ],
