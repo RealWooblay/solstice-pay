@@ -39,19 +39,19 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          <ThemeProvider defaultTheme="dark">
-            <AuthGate />
-            <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-              <Topbar />
-              <main className="pb-0">
-                <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
-                  {children}
-                </div>
-              </main>
-              {/* <BottomNav /> */}
-              <InstallPWAHint />
-            </div>
-          </ThemeProvider>
+            <ThemeProvider defaultTheme="dark">
+              <AuthGate />
+              <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+                <Topbar />
+                <main className="pb-0">
+                  <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
+                    {children}
+                  </div>
+                </main>
+                {/* <BottomNav /> */}
+                <InstallPWAHint />
+              </div>
+            </ThemeProvider>
         </Providers>
       </body>
     </html>

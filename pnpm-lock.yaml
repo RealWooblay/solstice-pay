@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@privy-io/react-auth':
         specifier: ^2.21.3
-        version: 2.21.3(@solana/web3.js@1.98.4(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.5.4)(utf-8-validate@5.0.10))(@types/react@18.3.3)(bs58@6.0.0)(bufferutil@4.0.9)(lit@3.3.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.5.4)(use-sync-external-store@1.5.0(react@18.3.1))(utf-8-validate@5.0.10)(zod@3.23.8)
+        version: 2.21.3(@solana/web3.js@1.98.4(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.5.4)(utf-8-validate@5.0.10))(@types/react@18.3.3)(bs58@6.0.0)(bufferutil@4.0.9)(lit@3.3.0)(permissionless@0.2.54(ox@0.6.9(typescript@5.5.4)(zod@3.23.8))(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.5.4)(use-sync-external-store@1.5.0(react@18.3.1))(utf-8-validate@5.0.10)(zod@3.23.8)
       '@privy-io/server-auth':
         specifier: ^1.31.1
         version: 1.31.1(bufferutil@4.0.9)(encoding@0.1.13)(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.5.4)(utf-8-validate@5.0.10)(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))
@@ -68,6 +68,9 @@ importers:
       next:
         specifier: 14.2.5
         version: 14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      permissionless:
+        specifier: ^0.2.54
+        version: 0.2.54(ox@0.6.9(typescript@5.5.4)(zod@3.23.8))(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))
       postcss:
         specifier: 8.4.41
         version: 8.4.41
@@ -89,6 +92,9 @@ importers:
       typescript:
         specifier: 5.5.4
         version: 5.5.4
+      viem:
+        specifier: ^2.33.3
+        version: 2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -3009,6 +3015,15 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
 
+  permissionless@0.2.54:
+    resolution: {integrity: sha512-r191GhpndQ9gAQqzxP75n1H2oIezmg7SJlKDEYP/R7v48ZdnXxdyOiLklvW4CRWN5IBKDJ+wUKZXSHfknsWIhQ==}
+    peerDependencies:
+      ox: ^0.6.7
+      viem: ^2.28.1
+    peerDependenciesMeta:
+      ox:
+        optional: true
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -4588,7 +4603,7 @@ snapshots:
     dependencies:
       viem: 2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
 
-  '@privy-io/js-sdk-core@0.53.4(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))':
+  '@privy-io/js-sdk-core@0.53.4(bufferutil@4.0.9)(permissionless@0.2.54(ox@0.6.9(typescript@5.5.4)(zod@3.23.8))(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)))(typescript@5.5.4)(utf-8-validate@5.0.10)(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))':
     dependencies:
       '@ethersproject/abstract-signer': 5.8.0
       '@ethersproject/bignumber': 5.8.0
@@ -4608,6 +4623,7 @@ snapshots:
       set-cookie-parser: 2.7.1
       uuid: 8.3.2
     optionalDependencies:
+      permissionless: 0.2.54(ox@0.6.9(typescript@5.5.4)(zod@3.23.8))(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))
       viem: 2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
     transitivePeerDependencies:
       - bufferutil
@@ -4626,7 +4642,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@privy-io/react-auth@2.21.3(@solana/web3.js@1.98.4(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.5.4)(utf-8-validate@5.0.10))(@types/react@18.3.3)(bs58@6.0.0)(bufferutil@4.0.9)(lit@3.3.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.5.4)(use-sync-external-store@1.5.0(react@18.3.1))(utf-8-validate@5.0.10)(zod@3.23.8)':
+  '@privy-io/react-auth@2.21.3(@solana/web3.js@1.98.4(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.5.4)(utf-8-validate@5.0.10))(@types/react@18.3.3)(bs58@6.0.0)(bufferutil@4.0.9)(lit@3.3.0)(permissionless@0.2.54(ox@0.6.9(typescript@5.5.4)(zod@3.23.8))(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.5.4)(use-sync-external-store@1.5.0(react@18.3.1))(utf-8-validate@5.0.10)(zod@3.23.8)':
     dependencies:
       '@base-org/account': 1.1.1(@types/react@18.3.3)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.5.4)(use-sync-external-store@1.5.0(react@18.3.1))(utf-8-validate@5.0.10)(zod@3.23.8)
       '@coinbase/wallet-sdk': 4.3.2
@@ -4638,7 +4654,7 @@ snapshots:
       '@privy-io/api-base': 1.6.0
       '@privy-io/chains': 0.0.2
       '@privy-io/ethereum': 0.0.2(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))
-      '@privy-io/js-sdk-core': 0.53.4(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))
+      '@privy-io/js-sdk-core': 0.53.4(bufferutil@4.0.9)(permissionless@0.2.54(ox@0.6.9(typescript@5.5.4)(zod@3.23.8))(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)))(typescript@5.5.4)(utf-8-validate@5.0.10)(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))
       '@privy-io/public-api': 2.43.1(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)
       '@reown/appkit': 1.7.19(@types/react@18.3.3)(bufferutil@4.0.9)(encoding@0.1.13)(lit@3.3.0)(react@18.3.1)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@scure/base': 1.2.6
@@ -4674,6 +4690,7 @@ snapshots:
       zustand: 5.0.7(@types/react@18.3.3)(react@18.3.1)(use-sync-external-store@1.5.0(react@18.3.1))
     optionalDependencies:
       '@solana/web3.js': 1.98.4(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.5.4)(utf-8-validate@5.0.10)
+      permissionless: 0.2.54(ox@0.6.9(typescript@5.5.4)(zod@3.23.8))(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8))
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -8417,6 +8434,12 @@ snapshots:
       minipass: 7.1.2
 
   path-type@4.0.0: {}
+
+  permissionless@0.2.54(ox@0.6.9(typescript@5.5.4)(zod@3.23.8))(viem@2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)):
+    dependencies:
+      viem: 2.33.3(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
+    optionalDependencies:
+      ox: 0.6.9(typescript@5.5.4)(zod@3.23.8)
 
   picocolors@1.1.1: {}
 

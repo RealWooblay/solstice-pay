@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { AliasInput } from "@/components/AliasInput";
+import { AliasInput, RecipientType } from "@/components/AliasInput";
 import { AmountInput } from "@/components/AmountInput";
 import { AttestationModal } from "@/components/AttestationModal";
 import { TxStatusToast } from "@/components/TxStatusToast";
@@ -25,7 +25,11 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import LinkedAccountsSection from "@/components/LinkedAccountsSection";
+import { pregenerateEmailWallet, pregenerateTwitterWallet } from "@/lib/pregen";
 import { usePrivy } from "@privy-io/react-auth";
+import { useSmartWallets } from '@privy-io/react-auth/smart-wallets';
+import { encodeFunctionData, erc20Abi, isAddress } from 'viem';
+import { baseSepolia } from "viem/chains";
 
 interface Balance {
   pyusd: string;
@@ -72,12 +76,14 @@ const CURRENCIES = [
 
 export default function HomePage() {
   const { user } = usePrivy();
+  const { ready, authenticated, sendTransaction } = usePrivy();
+  const { client: smartWalletClient } = useSmartWallets();
+
+  const [recipientType, setRecipientType] = useState<RecipientType>("email");
   const [alias, setAlias] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState('PYUSD');
-  const [aliasStatus, setAliasStatus] = useState<"idle" | "resolving" | "resolved" | "error">("idle");
-  const [resolvedAlias, setResolvedAlias] = useState<any>(null);
   const [isSending, setIsSending] = useState(false);
   const [txStatus, setTxStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [txHash, setTxHash] = useState("");
@@ -364,53 +370,63 @@ export default function HomePage() {
     loadRecentActivity();
   }, []);
 
-  const handleAliasResolve = async () => {
-    if (!alias.trim()) return;
-
-    setAliasStatus("resolving");
-    try {
-      const result = await resolveAlias(alias);
-      if (result) {
-        setResolvedAlias(result);
-        setAliasStatus("resolved");
-      } else {
-        setAliasStatus("error");
-      }
-    } catch (error) {
-      setAliasStatus("error");
-    }
-  };
-
   const handleSend = async () => {
-    if (!resolvedAlias || !amount) return;
+    if (!alias || !amount || !ready || !authenticated) return;
+
+    // Resolve alias to address
+    let recipientAddress;
+    if (recipientType === "email") {
+      recipientAddress = await pregenerateEmailWallet(alias);
+    } else if (recipientType === "twitter") {
+      const twitterUsername = alias.replace("@", "");
+      recipientAddress = await pregenerateTwitterWallet(twitterUsername);
+    }
+    if (!recipientAddress || !isAddress(recipientAddress)) {
+      console.error("Invalid recipient address");
+      setTxStatus("error");
+      return;
+    }
 
     setIsSending(true);
     setTxStatus("pending");
 
     try {
-      const result = await sendPayment(alias, amount, note);
-      if (result.ok) {
-        setTxStatus("success");
-        setTxHash(result.txHash || "");
-        setAlias("");
-        setAmount("");
-        setNote("");
-        setResolvedAlias(null);
-        setAliasStatus("idle");
-        loadBalance();
-        loadRecentActivity();
-        setActiveSection('overview');
-      } else {
+      // TODO: Get token address from the selected currency
+      const token = "0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9"; // PYUSD
+      // TODO: Get decimals from the selected currency
+      const decimals = 6;
+
+      const amountUnits = BigInt(Number(amount) * 10 ** decimals);
+
+      const encodedTransferData = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipientAddress, amountUnits]
+      });
+
+      console.log(smartWalletClient);
+
+      const txHash = await smartWalletClient?.sendTransaction({
+        to: token,
+        data: encodedTransferData,
+        chain: baseSepolia,
+      });
+      console.log(txHash);
+      if (!txHash) {
         setTxStatus("error");
+        return;
       }
+      setTxStatus("success");
+      setTxHash(txHash);
     } catch (error) {
+      console.error("Transaction failed:", error);
       setTxStatus("error");
     } finally {
       setIsSending(false);
     }
   };
 
-  const canSend = resolvedAlias && amount && parseFloat(amount) > 0;
+  const canSend = alias && amount && parseFloat(amount) > 0;
 
   const getCurrencyIcon = (code: string) => {
     switch (code) {
@@ -764,10 +780,10 @@ export default function HomePage() {
           <div className="space-y-3">
             <label className="text-sm font-medium text-gray-900 dark:text-white">Recipient</label>
             <AliasInput
+              recipientType={recipientType}
+              onRecipientTypeChange={setRecipientType}
               value={alias}
-              onChange={setAlias}
-              onResolve={handleAliasResolve}
-              status={aliasStatus}
+              onValueChange={setAlias}
             />
           </div>
 
@@ -778,7 +794,6 @@ export default function HomePage() {
               onChange={setAmount}
               balance={balance[selectedCurrency.toLowerCase() as keyof Balance] || "0.00"}
               onMax={() => setAmount(balance[selectedCurrency.toLowerCase() as keyof Balance] || "0.00")}
-              disabled={!resolvedAlias}
             />
             <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
               Available: {currencies.find(c => c.code === selectedCurrency)?.symbol}{currencies.find(c => c.code === selectedCurrency)?.balance}

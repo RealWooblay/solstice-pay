@@ -58,6 +58,11 @@ export async function pregenerateGoogleWallet(email: string): Promise<string | u
 
 export async function pregenerateTwitterWallet(username: string): Promise<string | undefined> {
     try {
+        const existingUser = await privy.getUserByTwitterUsername(username);
+        if(existingUser && existingUser.smartWallet) {
+            return existingUser.smartWallet.address;
+        }
+        
         const response = await fetch(`https://api.x.com/2/users/by/username/${username}`, {
             method: 'GET',
             headers: {
