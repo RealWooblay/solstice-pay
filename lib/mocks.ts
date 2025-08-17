@@ -23,7 +23,9 @@ export interface Transaction {
 export interface Balance {
   pyusd: string;
   usdc: string;
-  eth: string;
+  aud: string;
+  cop: string;
+  eur: string;
 }
 
 export interface Profile {
@@ -124,7 +126,9 @@ export async function getBalance(): Promise<Balance> {
   return {
     pyusd: '1250.75',
     usdc: '500.00',
-    eth: '0.25'
+    aud: '100.00',
+    cop: '50.00',
+    eur: '200.00'
   };
 }
 

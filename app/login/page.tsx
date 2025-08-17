@@ -10,7 +10,6 @@ export default function LoginPage() {
                 <h1 className="text-3xl font-semibold">Welcome</h1>
                 <p className="text-gray-600 dark:text-gray-400">Login to access SolsticePay</p>
                 <LoginButton />
-                <p className="text-xs text-gray-500 dark:text-gray-500">You’ll replace this with your modal.</p>
             </motion.div>
         </div>
     );
