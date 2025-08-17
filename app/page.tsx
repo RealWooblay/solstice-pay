@@ -137,6 +137,39 @@ export default function HomePage() {
       usdValue: 0,
       contractAddress: '0x1aBaEA1f7C830cD89Fc44E4b4a1c13D327e7A9d5',
       decimals: 6
+    },
+    {
+      code: 'xAUD',
+      name: 'Australian Dollar',
+      symbol: 'A$',
+      balance: '',
+      change: '',
+      color: 'text-orange-600 dark:text-orange-400',
+      usdValue: 0,
+      contractAddress: '0x0000000000000000000000000000000000000000', // Mock address
+      decimals: 6
+    },
+    {
+      code: 'xCOP',
+      name: 'Colombian Peso',
+      symbol: '₱',
+      balance: '',
+      change: '',
+      color: 'text-yellow-600 dark:text-yellow-400',
+      usdValue: 0,
+      contractAddress: '0x0000000000000000000000000000000000000000', // Mock address
+      decimals: 6
+    },
+    {
+      code: 'xGBP',
+      name: 'British Pound',
+      symbol: '£',
+      balance: '',
+      change: '',
+      color: 'text-red-600 dark:text-red-400',
+      usdValue: 0,
+      contractAddress: '0x0000000000000000000000000000000000000000', // Mock address
+      decimals: 6
     }
   ]);
 
@@ -221,6 +254,18 @@ export default function HomePage() {
               balance = realBalances.eurc;
               usdValue = parseFloat(realBalances.eurc) * 1.08; // Approx EUR to USD rate
               break;
+            case 'xAUD':
+              balance = "0.00"; // Mock balance
+              usdValue = 0.00 * 0.66; // Convert AUD to USD
+              break;
+            case 'xCOP':
+              balance = "0.00"; // Mock balance
+              usdValue = 0.00 * 0.00026; // Convert COP to USD
+              break;
+            case 'xGBP':
+              balance = "0.00"; // Mock balance
+              usdValue = 0.00 * 1.27; // Convert GBP to USD
+              break;
           }
 
           return {
@@ -302,7 +347,14 @@ export default function HomePage() {
   const getTokenBalance = async (address: string, contractAddress: string, decimals: number = 6): Promise<string> => {
     try {
       // Create provider for Ethereum Sepolia testnet using Alchemy
-      const provider = new ethers.JsonRpcProvider('https://eth-sepolia.g.alchemy.com/v2/demo');
+      const rpcUrl = 'https://eth-sepolia.g.alchemy.com/v2/demo';
+      console.log('Using RPC URL:', rpcUrl);
+
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+
+      // Test network connection
+      const network = await provider.getNetwork();
+      console.log('Connected to network:', network);
 
       // ERC20 ABI for balanceOf and decimals
       const erc20Abi = [
@@ -312,7 +364,7 @@ export default function HomePage() {
       ];
 
       // Create contract instance
-      const contract = new ethers.Contract(contractAddress, erc20Abi, provider);
+      const contract = new ethers.Contract(contractAddress, provider, erc20Abi);
 
       // Get balance and decimals
       const [balance, contractDecimals] = await Promise.all([
@@ -431,9 +483,11 @@ export default function HomePage() {
   const getCurrencyIcon = (code: string) => {
     switch (code) {
       case 'PYUSD': return DollarSign;
-      case 'xEUR': return Euro;
-      case 'xGBP': return PoundSterling;
+      case 'USDC': return DollarSign;
+      case 'EURC': return Euro;
       case 'xAUD': return DollarSign;
+      case 'xGBP': return PoundSterling;
+      case 'xCOP': return DollarSign;
       default: return DollarSign;
     }
   };
