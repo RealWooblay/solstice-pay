@@ -29,7 +29,7 @@ import { pregenerateEmailWallet, pregenerateTwitterWallet } from "@/lib/pregen";
 import { usePrivy } from "@privy-io/react-auth";
 import { useSmartWallets } from '@privy-io/react-auth/smart-wallets';
 import { encodeFunctionData, erc20Abi, isAddress } from 'viem';
-import { baseSepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 
 interface Balance {
   pyusd: string;
@@ -301,8 +301,8 @@ export default function HomePage() {
   // Real blockchain integration functions using ethers.js
   const getTokenBalance = async (address: string, contractAddress: string, decimals: number = 6): Promise<string> => {
     try {
-      // Create provider for Ethereum Sepolia testnet
-      const provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161');
+      // Create provider for Ethereum Sepolia testnet using Alchemy
+      const provider = new ethers.JsonRpcProvider('https://eth-sepolia.g.alchemy.com/v2/demo');
 
       // ERC20 ABI for balanceOf and decimals
       const erc20Abi = [
@@ -409,7 +409,7 @@ export default function HomePage() {
       const txHash = await smartWalletClient?.sendTransaction({
         to: token,
         data: encodedTransferData,
-        chain: baseSepolia,
+        chain: sepolia,
       });
       console.log(txHash);
       if (!txHash) {
