@@ -113,7 +113,7 @@ export default function HomePage() {
       change: '',
       color: 'text-blue-600 dark:text-blue-400',
       usdValue: 0,
-      contractAddress: '0x6c3ea90364068520000e5c6104c4aac4e8c8d956',
+      contractAddress: '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9',
       decimals: 6
     },
     {
