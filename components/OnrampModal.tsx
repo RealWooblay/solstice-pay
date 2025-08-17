@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Bank, DollarSign, ArrowRight, CheckCircle } from "lucide-react";
+import { CreditCard, Banknote, DollarSign, ArrowRight, CheckCircle } from "lucide-react";
 
 interface OnrampModalProps {
     open: boolean;
@@ -15,7 +15,7 @@ interface OnrampModalProps {
 
 const PAYMENT_METHODS = [
     { id: 'card', name: 'Credit/Debit Card', icon: CreditCard, fee: '2.5%', time: 'Instant' },
-    { id: 'bank', name: 'Bank Transfer', icon: Bank, fee: '0.5%', time: '1-3 days' },
+    { id: 'bank', name: 'Bank Transfer', icon: Banknote, fee: '0.5%', time: '1-3 days' },
     { id: 'ach', name: 'ACH Transfer', icon: DollarSign, fee: '0.1%', time: '3-5 days' }
 ];
 
